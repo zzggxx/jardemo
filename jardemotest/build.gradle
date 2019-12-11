@@ -1,0 +1,73 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.0"
+
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+//            需要开启混淆文件
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+//可将没用的文件删除,尤其的测试文件所需要的依赖
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+//    implementation 'androidx.appcompat:appcompat:1.0.2'
+//    testImplementation 'junit:junit:4.12'
+//    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+}
+
+//打jar包
+
+//jar包名字,可不要sdk前缀
+def SDK_BASENAME = "jardemotest"
+def SDK_VERSION = "_v1.0"
+//jar包位置,可不要sdk前缀
+def sdkJarPath = "build"
+//**待打jar包的位置**,后边地址可能会换,找一下放在哪里了修改一下即可.
+def zipFile = file('build/intermediates/packaged-classes/release/classes.jar')
+
+//删除生成的jar包
+//task deleteBuild(type: Delete) {
+//    delete destinationDir + _BASENAME + _VERSION + ".jar"
+//}
+
+//生成jar包
+task makeJar(type: Jar) {
+
+    from zipTree(zipFile)
+
+    //将assets也darujar包
+    from fileTree(dir: 'src/main', includes: ['assets/**'])
+
+    //不要打包什么文件
+    exclude('test/', 'androidtest/')
+    //去掉以R$开头的文件
+    exclude { it.name.startsWith('R$') }
+
+    baseName = SDK_BASENAME + SDK_VERSION
+
+    destinationDir = file(sdkJarPath)
+}
+
+makeJar.dependsOn(build)
+//在终端执行生成JAR包
+// gradlew makeJar
